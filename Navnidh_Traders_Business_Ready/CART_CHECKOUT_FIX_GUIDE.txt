@@ -1,0 +1,17 @@
+NAVNIDH TRADERS - STOCK, CART AND BUY NOW FIX
+
+1. Extract this ZIP to D:\Navnidh_Traders_Business_Ready (back up the old folder first).
+2. Open CMD and run:
+   cd /d D:\Navnidh_Traders_Business_Ready
+   setup.bat
+3. Set real stock and selling prices (required before purchase buttons enable):
+   setup_inventory.bat
+   Enter the physically verified stock count and final price for each product. Do not invent stock.
+4. Start both apps:
+   run_both.bat
+5. Open http://127.0.0.1:5000 and hard-refresh with Ctrl+F5.
+6. Product cards and product pages show exact database stock quantity. Add to cart and Buy now submit to the cart_add route; Buy now redirects to checkout after adding.
+7. If stock is 0, purchase buttons remain disabled intentionally. This prevents orders for unavailable products.
+8. Test COD checkout with test details. Online payment requires valid Razorpay merchant keys and a verified test payment.
+
+IMPORTANT: This package cannot know your real shop inventory. Stock must be entered by the owner.

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Payment Not Completed – Navnidh Traders{% endblock %}
+{% block body %}
+<div class="container section payment-page">
+  <div class="payment-card">
+    <div class="payment-icon failed">!</div>
+    <div class="eyebrow">Payment not completed</div>
+    <h1>Order #{{ o.id }} is still pending</h1>
+    <p class="payment-sub">No payment was marked as successful. Your stock was not reduced for this online order.</p>
+    <div class="payment-actions">
+      <a class="btn btn-brown" href="{{ url_for('checkout') }}">Back to Checkout</a>
+      <a class="btn btn-outline-brown" href="{{ url_for('shop') }}">Continue Shopping</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

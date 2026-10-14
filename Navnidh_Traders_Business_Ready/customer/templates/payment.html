@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Secure Online Payment – Navnidh Traders{% endblock %}
+{% block body %}
+<div class="container section payment-page">
+  <div class="payment-card">
+    <div class="payment-icon">₹</div>
+    <div class="eyebrow">Secure online payment</div>
+    <h1>Pay for Order #{{ o.id }}</h1>
+    <p class="payment-sub">You are being redirected to Razorpay's secure checkout. UPI, cards and other enabled methods will appear there.</p>
+    <div class="payment-amount">₹{{ '{:,}'.format(o.total) }}</div>
+    <div class="payment-order-meta"><span>{{ o.name }}</span><span>{{ o.phone }}</span></div>
+    <button id="pay-btn" class="btn btn-brown payment-btn">Pay ₹{{ '{:,}'.format(o.total) }} Securely</button>
+    <a href="{{ url_for('payment_failed', oid=o.id) }}" class="payment-cancel">Cancel payment</a>
+    <div id="payment-error" class="payment-error" hidden></div>
+    <p class="payment-safe">🔒 Your payment is processed by Razorpay. Your card/UPI details are not stored by Navnidh Traders.</p>
+  </div>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const csrfToken = {{ csrf_token()|tojson }};
+const options = {
+  key: {{ razorpay_key|tojson }},
+  amount: {{ o.total * 100 }},
+  currency: "INR",
+  name: "Navnidh Traders",
+  description: "Order #{{ o.id }}",
+  order_id: {{ gateway_order_id|tojson }},
+  prefill: {
+    name: {{ o.name|tojson }},
+    email: {{ o.email|tojson }},
+    contact: {{ o.phone|tojson }}
+  },
+  notes: { order_id: "{{ o.id }}" },
+  theme: { color: "#8b5e3c" },
+  modal: { ondismiss: function(){ window.location.href = {{ url_for('payment_failed', oid=o.id)|tojson }}; } },
+  handler: async function (response) {
+    const box = document.getElementById('payment-error');
+    try {
+      const r = await fetch({{ url_for('verify_payment', oid=o.id)|tojson }}, {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify(response)
+      });
+      const data = await r.json();
+      if (data.ok) window.location.href = data.redirect;
+      else { box.hidden = false; box.textContent = data.message || 'Payment verification failed.'; }
+    } catch (e) {
+      box.hidden = false; box.textContent = 'Payment completed, but confirmation could not be checked. Please contact Navnidh Traders with Order #{{ o.id }}.';
+    }
+  }
+};
+const rzp = new Razorpay(options);
+rzp.on('payment.failed', function(resp){
+  window.location.href = {{ url_for('payment_failed', oid=o.id)|tojson }};
+});
+document.getElementById('pay-btn').addEventListener('click', function(e){ e.preventDefault(); rzp.open(); });
+window.addEventListener('load', () => setTimeout(() => rzp.open(), 400));
+</script>
+{% endblock %}

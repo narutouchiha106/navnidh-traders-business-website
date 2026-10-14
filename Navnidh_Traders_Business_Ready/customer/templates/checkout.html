@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Secure Checkout – Navnidh Traders{% endblock %}
+{% block body %}
+<div class="container section checkout-page">
+  <div class="checkout-head reveal">
+    <div>
+      <div class="eyebrow">Secure checkout</div>
+      <h1>Complete your order</h1>
+      <p>Enter your delivery details. After placing the order, your online bill will be ready instantly.</p>
+    </div>
+    <div class="checkout-steps">
+      <span class="active"><b>1</b> Details</span><i></i><span><b>2</b> Bill</span><i></i><span><b>3</b> WhatsApp</span>
+    </div>
+  </div>
+
+  <form method="post" class="row g-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="col-lg-7">
+      <div class="checkout-card">
+        <div class="checkout-card-title"><span class="step-icon">01</span><div><h4>Delivery details</h4><p>Where should we deliver your order?</p></div></div>
+        <div class="row g-3">
+          {% for n,l,ty,w in [('name','Full Name','text',12),('phone','Mobile Number','tel',6),('email','Email','email',6),('address','Full Address','text',12),('city','City','text',4),('state','State','text',4),('pincode','Pincode','text',4)] %}
+          <div class="col-md-{{ w }}">
+            <label class="form-label">{{ l }}</label>
+            <input class="form-control" type="{{ ty }}" name="{{ n }}" value="{{ f.get(n,'') }}" {% if n=='phone' %}inputmode="numeric" maxlength="10" placeholder="10-digit mobile"{% elif n=='pincode' %}inputmode="numeric" maxlength="6" placeholder="6-digit pincode"{% endif %} required>
+          </div>
+          {% endfor %}
+          <div class="col-12">
+            <label class="form-label">Delivery instructions <span class="text-muted fw-normal">(optional)</span></label>
+            <textarea class="form-control" name="notes" rows="3" placeholder="Any useful delivery note...">{{ f.get('notes','') }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-card mt-4">
+        <div class="checkout-card-title"><span class="step-icon">02</span><div><h4>Payment method</h4><p>Choose how you want to pay.</p></div></div>
+        <div class="payment-choice">
+          <label class="payment-option selected" data-payment-option>
+            <input type="radio" name="payment" value="cod" checked>
+            <span class="pay-icon">₹</span>
+            <span><strong>Cash on Delivery</strong><small>Pay when your order is delivered.</small></span>
+            <span class="radio-dot"></span>
+          </label>
+          <label class="payment-option" data-payment-option>
+            <input type="radio" name="payment" value="online">
+            <span class="pay-icon">↗</span>
+            <span><strong>Online Payment</strong><small>Pay securely with UPI, card and other Razorpay methods.</small></span>
+            <span class="radio-dot"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="checkout-summary">
+        <div class="summary-top"><div><span class="eyebrow">Your order</span><h3>Order summary</h3></div><span class="item-count">{{ items|length }} item{% if items|length != 1 %}s{% endif %}</span></div>
+        <div class="summary-items">
+          {% for p,q in items %}
+          <div class="summary-item">
+            <img src="{{ p.img }}" alt="{{ p.name }}">
+            <div class="summary-item-info"><strong>{{ p.name }}</strong><span>Qty {{ q }} × ₹{{ '{:,}'.format(p.now_price) }}</span></div>
+            <b>₹{{ '{:,}'.format(p.now_price*q) }}</b>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="summary-line"><span>Subtotal</span><b>₹{{ '{:,}'.format(t[0]) }}</b></div>
+        <div class="summary-line"><span>Delivery</span><b>{{ 'FREE' if t[1]==0 else '₹'~'{:,}'.format(t[1]) }}</b></div>
+        <div class="summary-total"><span>Grand Total</span><strong>₹{{ '{:,}'.format(t[2]) }}</strong></div>
+        <button class="btn btn-brown w-100 checkout-btn">Place Order &amp; Continue to Payment / Bill <span>→</span></button>
+        <div class="secure-note"><span>✓</span> Your order details are used only to process delivery.</div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+<script>
+document.querySelectorAll('[data-payment-option]').forEach(function(option){
+  option.addEventListener('click', function(){
+    document.querySelectorAll('[data-payment-option]').forEach(function(x){x.classList.remove('selected')});
+    option.classList.add('selected');
+    option.querySelector('input').checked = true;
+  });
+});
+</script>

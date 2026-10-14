@@ -1,0 +1,28 @@
+{% extends 'base.html' %}{% from '_card.html' import card %}
+{% block title %}{{ p.name }} – Navnidh Traders{% endblock %}
+{% block desc %}{{ (p.description or p.name)[:150] }}{% endblock %}
+{% block head %}<meta property="og:image" content="{{ p.img }}"><script type="application/ld+json">{{ {"@context":"https://schema.org","@type":"Product","name":p.name,"description":p.description,"offers":{"@type":"Offer","priceCurrency":"INR","price":p.now_price,"availability":"https://schema.org/InStock" if p.stock>0 else "https://schema.org/OutOfStock"}}|tojson }}</script>{% endblock %}
+{% block body %}
+<div class="page-shell"><div class="container product-view-meta" data-product-name="{{ p.name|e }}" data-product-url="{{ url_for('product',slug=p.slug) }}" data-product-image="{{ p.img|e }}">
+ <div class="breadcrumb-lite mb-4 reveal"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a> / <a href="{{ url_for('category',slug=p.category.slug) }}" class="text-decoration-none">{{ p.category.name }}</a> / {{ p.name }}</div>
+ <div class="row g-5 align-items-start">
+  <div class="col-lg-6 reveal"><div class="zoom"><img src="{{ p.img }}" alt="{{ p.name }}"></div></div>
+  <div class="col-lg-6 reveal reveal-delay-1">
+   <span class="product-cat">{{ p.category.name }}</span><h1 class="display-5 fw-bold mt-2">{{ p.name }}</h1>
+   <div class="d-flex align-items-center gap-3 mb-3"><span class="price fs-2">₹{{ '{:,}'.format(p.now_price) }}</span>{% if p.off %}<span class="old">₹{{ '{:,}'.format(p.price) }}</span><span class="badge bg-danger">{{ p.off }}% OFF</span>{% endif %}</div>
+   <p class="{{ 'text-success' if p.stock>0 else 'text-danger' }} fw-semibold">{{ ('✓ Stock: ' ~ p.stock ~ ' unit' ~ ('' if p.stock == 1 else 's') ~ ' available') if p.stock>0 else 'Stock: 0 units — currently unavailable' }}</p>
+   <p class="text-muted lh-lg">{{ p.description }}</p><div class="catalog-notice mb-3"><strong>Before ordering:</strong> This is a reference catalogue item. Confirm actual stock, current selling price, exact variant, delivery and warranty with Navnidh Traders.</div>
+   <div class="d-flex flex-wrap gap-2 mb-3"><button type="button" class="wishlist-toggle" data-wishlist data-name="{{ p.name|e }}" data-url="{{ url_for('product',slug=p.slug) }}" data-image="{{ p.img|e }}" aria-pressed="false">♡ Add to wishlist</button></div>
+   <form method="post" action="{{ url_for('cart_add',pid=p.id) }}" class="d-flex flex-wrap gap-2 mb-4"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="number" name="qty" value="1" min="1" max="{{ [p.stock,20]|min if p.stock > 0 else 1 }}" class="form-control" style="width:82px" aria-label="Quantity" {% if p.stock<1 %}disabled{% endif %}>
+    <button type="submit" class="btn btn-brown" {% if p.stock<1 %}disabled title="Out of stock: update verified stock in inventory setup"{% endif %}>Add to cart</button><button type="submit" name="buy" value="1" class="btn btn-dark" {% if p.stock<1 %}disabled title="Out of stock: update verified stock in inventory setup"{% endif %}>Buy now</button>
+    <a class="btn btn-success" target="_blank" rel="noopener" href="{{ wa_link(p.name) }}">WhatsApp</a>
+   </form>
+   <div class="glass-panel p-4 mb-4"><div class="row g-3 small"><div class="col-6"><strong>Delivery</strong><br><span class="text-muted">{{ delivery_policy }}</span></div><div class="col-6"><strong>Warranty</strong><br><span class="text-muted">{{ warranty_policy }}</span></div></div></div>
+   <h5 class="fw-bold">Specifications</h5><div class="table-responsive"><table class="table table-sm">{% for k,v in p.spec_list %}<tr><th>{{ k }}</th><td>{{ v }}</td></tr>{% endfor %}</table></div>
+   <p class="small text-muted mb-0">{{ delivery_policy }} Confirm the final delivery charge and expected delivery date with the shop before completing your purchase.</p>
+  </div>
+ </div>
+ {% if rel %}<div class="mt-5 pt-4"><div class="section-heading text-start mx-0 mb-4 reveal"><div class="eyebrow">You may also like</div><h2>Related products</h2></div><div class="row g-4">{% for r in rel %}<div class="col-6 col-md-3 reveal reveal-delay-{{ loop.index }}">{{ card(r, wa_link) }}</div>{% endfor %}</div></div>{% endif %}
+</div></div>
+{% endblock %}

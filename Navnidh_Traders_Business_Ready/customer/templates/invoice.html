@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Invoice #{{ o.id }} – {{ business_name }}{% endblock %}
+{% block body %}
+<div class="container section invoice-page">
+  <div class="print-toolbar no-print">
+    <a href="{{ url_for('order_done', oid=o.id) }}" class="btn btn-outline-brown">← Back</a>
+    <div><a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-whatsapp">Send Bill to Customer WhatsApp</a><button onclick="window.print()" class="btn btn-dark">Print / Save PDF</button></div>
+  </div>
+
+  <article class="invoice-sheet">
+    <header class="invoice-sheet-head">
+      <div class="invoice-brand large"><span>N</span><div><strong>{{ business_name }}</strong><small>Chairs &amp; Furniture</small></div></div>
+      <div class="invoice-meta"><span>TAX INVOICE / ORDER BILL</span><strong>#{{ o.id }}</strong><small>{{ o.created_at.strftime('%d %b %Y, %I:%M %p') }}</small></div>
+    </header>
+    <div class="invoice-divider"></div>
+    <div class="invoice-info">
+      <div><span>BILLED TO</span><strong>{{ o.name }}</strong><p>{{ o.phone }}<br>{{ o.email }}<br>{{ o.address }}, {{ o.city }}<br>{{ o.state }} - {{ o.pincode }}</p></div>
+      <div><span>ORDER STATUS</span><strong>{{ o.status }}</strong><p>Payment: {{ o.payment }}<br>Payment status: {{ o.payment_status or 'unpaid' }}</p></div>
+    </div>
+    <div class="invoice-table">
+      <div class="invoice-row invoice-row-head"><span>ITEM</span><span>QTY</span><span>UNIT PRICE</span><span>AMOUNT</span></div>
+      {% for item in o.items %}
+      <div class="invoice-row"><span><strong>{{ item.name }}</strong></span><span>{{ item.qty }}</span><span>₹{{ '{:,}'.format(item.price) }}</span><span>₹{{ '{:,}'.format(item.price * item.qty) }}</span></div>
+      {% endfor %}
+    </div>
+    {% set item_subtotal = namespace(value=0) %}{% for item in o.items %}{% set item_subtotal.value = item_subtotal.value + item.price * item.qty %}{% endfor %}
+    <div class="invoice-totals-breakdown"><div><span>Items subtotal</span><strong>₹{{ '{:,}'.format(item_subtotal.value) }}</strong></div><div><span>Delivery / other charges included in total</span><strong>₹{{ '{:,}'.format(o.total - item_subtotal.value) }}</strong></div></div>
+    <div class="invoice-bottom">
+      <div><span>Thank you for shopping with {{ business_name }}.</span>{% if o.notes %}<p><strong>Delivery note:</strong> {{ o.notes }}</p>{% endif %}</div>
+      <div class="grand"><span>GRAND TOTAL</span><strong>₹{{ '{:,}'.format(o.total) }}</strong></div>
+    </div>
+    <footer>Computer-generated order bill • Order #{{ o.id }} • {{ business_name }}. Confirm applicable tax invoice requirements before treating this as a GST tax invoice.</footer>
+  </article>
+</div>
+{% endblock %}

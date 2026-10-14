@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Order Confirmed #{{ o.id }} – Navnidh Traders{% endblock %}
+{% block body %}
+<div class="container section order-success">
+  <div class="success-hero reveal">
+    <div class="success-check">✓</div>
+    <div class="eyebrow">Order confirmed</div>
+    <h1>Thank you, {{ o.name }}!</h1>
+    <p>Your order <strong>#{{ o.id }}</strong> has been placed successfully. Your online bill is ready below.</p>
+  </div>
+
+  <div class="invoice-card reveal">
+    <div class="invoice-head">
+      <div>
+        <div class="invoice-brand"><span>N</span><div><strong>{{ business_name }}</strong><small>Chairs &amp; Furniture</small></div></div>
+      </div>
+      <div class="invoice-meta"><span>INVOICE</span><strong>#{{ o.id }}</strong><small>{{ o.created_at.strftime('%d %b %Y, %I:%M %p') }}</small></div>
+    </div>
+
+    <div class="invoice-info">
+      <div><span>BILLED TO</span><strong>{{ o.name }}</strong><p>{{ o.phone }}<br>{{ o.email }}<br>{{ o.address }}, {{ o.city }}<br>{{ o.state }} - {{ o.pincode }}</p></div>
+      <div><span>PAYMENT</span><strong>{{ o.payment }}</strong><p>Status: <b>{{ o.status }}</b><br>Payment status: <b>{{ o.payment_status or 'unpaid' }}</b></p></div>
+    </div>
+
+    <div class="invoice-table">
+      <div class="invoice-row invoice-row-head"><span>ITEM</span><span>QTY</span><span>PRICE</span><span>TOTAL</span></div>
+      {% for item in o.items %}
+      <div class="invoice-row"><span><strong>{{ item.name }}</strong></span><span>{{ item.qty }}</span><span>₹{{ '{:,}'.format(item.price) }}</span><span>₹{{ '{:,}'.format(item.price * item.qty) }}</span></div>
+      {% endfor %}
+    </div>
+
+    {% set item_subtotal = namespace(value=0) %}{% for item in o.items %}{% set item_subtotal.value = item_subtotal.value + item.price * item.qty %}{% endfor %}<div class="invoice-total"><span>Items ₹{{ '{:,}'.format(item_subtotal.value) }} + delivery/other charges ₹{{ '{:,}'.format(o.total - item_subtotal.value) }}<br>Grand Total</span><strong>₹{{ '{:,}'.format(o.total) }}</strong></div>
+
+    <div class="invoice-actions">
+      <a class="btn btn-brown" href="{{ url_for('invoice', oid=o.id, token=invoice_token) }}">View / Print Full Bill</a>
+      <a class="btn btn-whatsapp" target="_blank" rel="noopener" href="{{ wa_url }}">Send Bill to Customer WhatsApp</a>
+      <a class="btn btn-outline-brown" href="{{ url_for('shop') }}">Continue Shopping</a>
+    </div>
+    <p class="invoice-note">Tip: “View / Print Full Bill” opens a clean online invoice. You can print it or choose “Save as PDF”. The WhatsApp button opens the customer’s WhatsApp chat with the order and bill link pre-filled; press Send in WhatsApp to deliver it.</p>
+  </div>
+</div>
+{% endblock %}
